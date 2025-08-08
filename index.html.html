@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NCERT Hub — Fancy Edition (Fixed)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f6fb;
+  --card: rgba(255,255,255,0.15);
+  --muted: #cbd5e1;
+  --accent: #4f46e5;
+  --accent-2: #06b6d4;
+  --glass: rgba(255,255,255,0.12);
+  --blur: 10px;
+  color-scheme: light;
+}
+body.dark {
+  --bg: #071029;
+  --card: rgba(255,255,255,0.04);
+  --muted: #94a3b8;
+  --accent: #60a5fa;
+  --accent-2: #22d3ee;
+  --glass: rgba(255,255,255,0.03);
+  color-scheme: dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body {
+  font-family: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  min-height:100vh;
+  background: linear-gradient(180deg,#eaf2ff 0%,#f3f6fb 100%);
+  color:#0b1220;
+  transition: all .28s ease;
+}
+body.dark { background: linear-gradient(180deg,#041328 0%,#071029 100%); color: #e6eef8; }
+header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px; border-radius:0 0 18px 18px;
+  background: linear-gradient(90deg,var(--accent),var(--accent-2));
+  box-shadow: 0 8px 28px rgba(11,63,121,0.12);
+  color:white;
+}
+.logo { display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.15rem }
+.header-actions { display:flex;gap:10px;align-items:center }
+.btn {
+  background: rgba(255,255,255,0.12); color:white; border: none;
+  padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer;
+  transition: all .22s;
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(11,63,121,0.12) }
+.toggle-dark { background:transparent;border:1px solid rgba(255,255,255,0.18);padding:6px 10px;border-radius:10px;color:white;cursor:pointer }
+
+.container { max-width:1180px;margin:22px auto;padding:0 18px; }
+.top-row { display:flex;gap:12px;align-items:center;margin-bottom:16px }
+.search { flex:1; display:flex; gap:10px }
+.search input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(11,23,42,0.06);font-size:15px}
+.select { padding:10px;border-radius:10px;border:1px solid rgba(11,23,42,0.06) }
+
+.grid { display:grid; grid-template-columns: 280px 1fr 300px; gap:18px; align-items:start; }
+@media(max-width:980px){ .grid{ grid-template-columns: 1fr; } .sidebar, .rightbar{ order:2 } .content{order:1} }
+
+.card {
+  background: var(--card);
+  border-radius:14px;
+  padding:14px;
+  backdrop-filter: blur(var(--blur));
+  box-shadow: 0 6px 20px rgba(2,6,23,0.04);
+  transition: transform .18s ease;
+}
+.card:hover{ transform: translateY(-4px) }
+
+.subject-pill {
+  display:inline-block;padding:8px 12px;border-radius:999px;margin:6px 6px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  cursor:pointer;font-weight:600; color: inherit;
+}
+.subject-pill:hover{ transform: translateY(-4px); box-shadow: 0 8px 20px rgba(11,63,121,0.06) }
+
+.chapter {
+  border-left:4px solid rgba(6,182,212,0.12);
+  padding:12px;margin-bottom:14px;border-radius:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+}
+.chapter h4{margin:0 0 8px 0}
+.exercise {
+  background: rgba(255,255,255,0.03);
+  border-radius:10px;padding:10px;margin:8px 0; cursor:pointer;
+  transition: all .24s ease;
+}
+.exercise:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(11,63,121,0.04) }
+.q { font-weight:700 }
+.solution { max-height:0; overflow:hidden; opacity:0; transition: all .28s ease; margin-top:6px; }
+.exercise.open .solution { max-height:800px; opacity:1 }
+
+.small { font-size:13px; color: var(--muted); margin-top:6px; display:block }
+
+.rightbar .link { display:block; margin-bottom:10px; padding:10px; border-radius:10px; text-decoration:none; color:inherit; background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); }
+
+footer { text-align:center; margin:20px auto 40px; color:var(--muted); font-size:13px }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">📘 NCERT Hub — Fancy (fixed)</div>
+  <div class="header-actions">
+    <button class="btn" id="importBtn">Import JSON</button>
+    <button class="btn" id="exportBtn">Export JSON</button>
+    <button class="toggle-dark" id="darkToggle">🌙</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="top-row">
+    <div class="search">
+      <input id="globalSearch" placeholder="Search classes, subjects, chapters or questions...">
+      <button class="btn" id="searchBtn">Search</button>
+    </div>
+    <select id="classFilter" class="select"><option value="">All Classes</option></select>
+    <select id="subjectFilter" class="select"><option value="">All Subjects</option></select>
+  </div>
+
+  <div class="grid">
+    <aside class="card sidebar">
+      <h3>Classes</h3>
+      <div id="classesList" style="margin-top:10px"></div>
+      <hr style="margin:12px 0;border-color:rgba(255,255,255,0.04)">
+      <h3>Subjects</h3>
+      <div id="subjectsList" style="margin-top:10px"></div>
+      <div class="small" style="margin-top:12px">Tip: Use Import to load full NCERT JSON for Class 9 & 10. Demo data is preloaded so you can test functionality.</div>
+    </aside>
+
+    <section class="card content">
+      <h2 id="pageTitle">Welcome — select a class</h2>
+      <div class="small">Click a subject to show chapters. Click a question to reveal the solution.</div>
+      <hr style="margin:12px 0;border-color:rgba(255,255,255,0.04)">
+      <div id="chaptersArea"></div>
+    </section>
+
+    <aside class="card rightbar">
+      <h3>Quick Links</h3>
+      <a class="link" href="https://ncert.nic.in/textbook.php" target="_blank">Official NCERT Textbooks</a>
+      <a class="link" href="https://www.vedantu.com/ncert-solutions" target="_blank">NCERT Solutions (Vedantu)</a>
+      <a class="link" href="https://byjus.com" target="_blank">BYJU'S</a>
+    </aside>
+  </div>
+</div>
+
+<footer>NCERT Hub — Fixed UI</footer>
+
+<script>
+/* ---------- Demo dataset (so chapters & Q/A load immediately) ---------- */
+const data = {
+  classes: [
+    {
+      class: '9',
+      subjects: [
+        {
+          name: 'Mathematics',
+          chapters: [
+            {
+              title: 'Number Systems',
+              exercises: [
+                { question: 'Find the product of √2 and √8.', solution: '√2 × √8 = √16 = 4.' },
+                { question: 'Express 0.272727... as a fraction.', solution: 'Let x = 0.2727... => 100x = 27.2727..., so 99x = 27, x = 27/99 = 3/11.' }
+              ]
+            },
+            {
+              title: 'Polynomials',
+              exercises: [
+                { question: 'What is the degree of 3x^2 + 5x + 1?', solution: 'Degree is 2.' },
+                { question: 'Factorize x^2 - 5x + 6.', solution: '(x-2)(x-3).' }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'Science',
+          chapters: [
+            {
+              title: 'Matter in Our Surroundings',
+              exercises: [
+                { question: 'Define evaporation.', solution: 'Evaporation is the process where liquid turns into vapour at any temperature.' },
+                { question: 'Give one example of sublimation.', solution: 'Camphor and dry ice (solid CO2) sublimate.' }
+              ]
+            },
+            {
+              title: 'Is Matter Around Us Pure',
+              exercises: [
+                { question: 'What is a mixture?', solution: 'A combination of two or more substances not chemically combined.' },
+                { question: 'Differentiate homogeneous and heterogeneous mixtures.', solution: 'Homogeneous have uniform composition; heterogeneous do not.' }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      class: '10',
+      subjects: [
+        {
+          name: 'Mathematics',
+          chapters: [
+            {
+              title: 'Real Numbers',
+              exercises: [
+                { question: 'State the Euclid\'s division lemma.', solution: 'Given integers a and b>0, there exist unique q and r such that a = bq + r, 0 ≤ r < b.' },
+                { question: 'Prove that √2 is irrational (outline).', solution: 'Assume √2 = p/q in lowest terms then deduce p and q both even — contradiction.' }
+              ]
+            },
+            {
+              title: 'Quadratic Equations',
+              exercises: [
+                { question: 'Solve x^2 - 5x + 6 = 0.', solution: 'x = 2 or x = 3.' },
+                { question: 'What is discriminant?', solution: 'D = b^2 - 4ac; it determines nature of roots.' }
+              ]
+            }
+          ]
+        },
+        {
+          name: 'Science',
+          chapters: [
+            {
+              title: 'Chemical Reactions and Equations',
+              exercises: [
+                { question: 'Balance: H2 + O2 → H2O', solution: '2H2 + O2 → 2H2O' },
+                { question: 'What is a redox reaction?', solution: 'A reaction involving transfer of electrons (oxidation and reduction).' }
+              ]
+            },
+            {
+              title: 'Acids, Bases and Salts',
+              exercises: [
+                { question: 'Give an example of a strong acid.', solution: 'Hydrochloric acid (HCl).' },
+                { question: 'Name an indicator for acids and bases.', solution: 'Litmus; turns red in acid and blue in base.' }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+/* ---------- Helpers ---------- */
+function safeLower(s){ return (s||'').toString().toLowerCase(); }
+
+const classesList = document.getElementById('classesList');
+const subjectsList = document.getElementById('subjectsList');
+const chaptersArea = document.getElementById('chaptersArea');
+const classFilter = document.getElementById('classFilter');
+const subjectFilter = document.getElementById('subjectFilter');
+const globalSearch = document.getElementById('globalSearch');
+
+let selectedClass = null;
+let selectedSubject = null;
+
+function initFilters(){
+  classFilter.innerHTML = '<option value="">All Classes</option>';
+  data.classes.forEach((c, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx; // index used for selection
+    opt.textContent = 'Class ' + c.class;
+    classFilter.appendChild(opt);
+  });
+  refreshClassesList();
+}
+
+function refreshClassesList(){
+  classesList.innerHTML = '';
+  data.classes.forEach((c, idx) => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.textContent = 'Class ' + c.class + ' (' + (c.subjects||[]).length + ' subjects)';
+    el.style.padding = '8px';
+    el.style.borderRadius = '8px';
+    el.style.cursor = 'pointer';
+    el.onclick = ()=> {
+      selectClass(idx);
+      classFilter.value = idx;
+    };
+    classesList.appendChild(el);
+  });
+}
+
+function renderSubjectsForClass(ci){
+  subjectsList.innerHTML = '';
+  subjectFilter.innerHTML = '<option value="">All Subjects</option>';
+  const c = data.classes[ci];
+  (c.subjects || []).forEach((s, si) => {
+    const pill = document.createElement('div');
+    pill.className = 'subject-pill';
+    pill.textContent = s.name;
+    pill.onclick = ()=> { selectSubject(si); subjectFilter.value = si; };
+    subjectsList.appendChild(pill);
+
+    const opt = document.createElement('option');
+    opt.value = si;
+    opt.textContent = s.name;
+    subjectFilter.appendChild(opt);
+  });
+}
+
+function selectClass(ci){
+  selectedClass = ci;
+  selectedSubject = null;
+  const c = data.classes[ci];
+  document.getElementById('pageTitle').textContent = 'Class ' + c.class;
+  renderSubjectsForClass(ci);
+  chaptersArea.innerHTML = '<div class="small">Select a subject to view chapters & exercises.</div>';
+}
+
+function selectSubject(si){
+  if(selectedClass === null) {
+    alert('Please select a class first from the left.');
+    return;
+  }
+  selectedSubject = si;
+  const s = data.classes[selectedClass].subjects[si];
+  document.getElementById('pageTitle').textContent = 'Class ' + data.classes[selectedClass].class + ' → ' + s.name;
+  renderChapters(s);
+}
+
+function renderChapters(s){
+  chaptersArea.innerHTML = '';
+  if(!s.chapters || s.chapters.length === 0){
+    chaptersArea.innerHTML = '<div class="small">No chapters found for this subject.</div>';
+    return;
+  }
+  (s.chapters || []).forEach((ch) => {
+    const chBox = document.createElement('div');
+    chBox.className = 'chapter';
+    chBox.innerHTML = `<h4>${ch.title || ch.name}</h4><div class="small">${(ch.exercises || []).length} exercises</div>`;
+
+    (ch.exercises || []).forEach((ex, ei) => {
+      const exEl = document.createElement('div');
+      exEl.className = 'exercise';
+      const qHtml = `<div class="q">Q${ei+1}: ${ex.question || ''}</div>`;
+      const solHtml = `<div class="solution">${ex.solution || ''}</div>`;
+      exEl.innerHTML = qHtml + solHtml;
+      exEl.onclick = (ev) => {
+        exEl.classList.toggle('open');
+      };
+      chBox.appendChild(exEl);
+    });
+
+    chaptersArea.appendChild(chBox);
+  });
+}
+
+/* --- Search --- */
+function doGlobalSearch(){
+  const q = safeLower(globalSearch.value.trim());
+  if(!q){ alert('Type something to search'); return; }
+  const results = [];
+  data.classes.forEach(c=>{
+    (c.subjects || []).forEach(s=>{
+      (s.chapters || []).forEach(ch=>{
+        (ch.exercises || []).forEach(ex=>{
+          if( safeLower(c.class).includes(q) || safeLower(s.name).includes(q) || safeLower(ch.title || ch.name).includes(q)
+              || safeLower(ex.question).includes(q) || safeLower(ex.solution).includes(q) ){
+            results.push({ class: c.class, subject: s.name, chapter: ch.title || ch.name, question: ex.question, solution: ex.solution });
+          }
+        });
+      });
+    });
+  });
+  document.getElementById('pageTitle').textContent = `Search results for "${globalSearch.value}" (${results.length})`;
+  chaptersArea.innerHTML = '';
+  results.forEach(r=>{
+    const box = document.createElement('div'); box.className='chapter';
+    box.innerHTML = `<h4>${r.class} → ${r.subject} → ${r.chapter}</h4>`;
+    const exEl = document.createElement('div'); exEl.className='exercise';
+    exEl.innerHTML = `<div class="q">Q: ${r.question}</div><div class="solution">${r.solution}</div>`;
+    exEl.onclick = ()=> exEl.classList.toggle('open');
+    box.appendChild(exEl);
+    chaptersArea.appendChild(box);
+  });
+}
+
+/* --- Filters wiring --- */
+document.getElementById('searchBtn').addEventListener('click', doGlobalSearch);
+globalSearch.addEventListener('keypress', (e) => { if(e.key === 'Enter') doGlobalSearch(); });
+
+classFilter.addEventListener('change', ()=>{
+  const v = classFilter.value;
+  if(v === '') return;
+  selectClass(parseInt(v));
+});
+
+subjectFilter.addEventListener('change', ()=>{
+  const v = subjectFilter.value;
+  if(v === '') return;
+  selectSubject(parseInt(v));
+});
+
+/* --- Dark mode toggle --- */
+document.getElementById('darkToggle').addEventListener('click', ()=>{
+  document.body.classList.toggle('dark');
+});
+
+/* --- Init --- */
+initFilters();
+
+/* Pre-select first class for convenience */
+if(data.classes.length>0) {
+  selectClass(0);
+}
+</script>
+</body>
+</html>
